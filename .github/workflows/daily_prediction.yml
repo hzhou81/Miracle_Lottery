@@ -43,17 +43,32 @@ jobs:
       run: |
         python run_predict.py >> prediction_results.txt 2>&1 || true
 
-    - name: Post prediction summary to console
+    - name: Update README with prediction results
       run: |
-        echo "=== Lottery Prediction Summary ==="
-        echo "Date: $(date)"
-        echo ""
-        echo "SSQ (双色球) Prediction Results:"
-        echo "================================"
-        tail -10 prediction_results.txt | grep -E "(预测期号|预测结果)" || echo "No SSQ results found"
-        echo ""
-        echo "DLT (大乐透) Prediction Results:"
-        echo "==============================="
-        tail -5 prediction_results.txt | grep -E "(预测期号|预测结果)" || echo "No DLT results found"
-        echo ""
-        echo "Prediction results have been updated to README.md"
+        echo "=== Lottery Prediction Summary ===" > README_update.md
+        echo "Date: $(date)" >> README_update.md
+        echo "" >> README_update.md
+
+        # 检查是否有预测结果
+        if grep -q "预测期号" prediction_results.txt; then
+          echo "SSQ (双色球) Prediction Results:" >> README_update.md
+          echo "================================" >> README_update.md
+          tail -10 prediction_results.txt | grep -E "(预测期号|预测结果)" >> README_update.md
+          echo "" >> README_update.md
+
+          echo "DLT (大乐透) Prediction Results:" >> README_update.md
+          echo "===============================" >> README_update.md
+          tail -5 prediction_results.txt | grep -E "(预测期号|预测结果)" >> README_update.md
+          echo "" >> README_update.md
+        else
+          echo "No lottery predictions were generated today." >> README_update.md
+          echo "This may be because today is not a prediction day." >> README_update.md
+        fi
+
+        # 将更新后的内容追加到README.md的顶部
+        head -n 10 README.md > README_temp.md
+        cat README_update.md >> README_temp.md
+        cp README_temp.md README.md
+        rm README_temp.md README_update.md
+
+        echo "README.md has been updated with today's prediction results!"
