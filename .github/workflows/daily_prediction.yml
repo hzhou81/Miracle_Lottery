@@ -39,49 +39,12 @@ jobs:
     - name: Run run_predict.py for SSQ (双色球)
       id: predict_ssq
       run: |
-        echo "=== SSQ (双色球) Prediction Start ===" >> prediction_results.txt 2>&1
-        echo "Date: $(date)" >> prediction_results.txt 2>&1
-        if python run_predict.py --name ssq >> prediction_results.txt 2>&1; then
-          echo "SSQ Prediction completed successfully" >> prediction_results.txt 2>&1
-        else
-          echo "SSQ Prediction failed - check model files" >> prediction_results.txt 2>&1
-          echo "Using fallback prediction..." >> prediction_results.txt 2>&1
-          echo "红球预测: 01, 08, 15, 22, 29, 33" >> prediction_results.txt 2>&1
-          echo "蓝球预测: 12" >> prediction_results.txt 2>&1
-        fi
-        echo "=== SSQ Prediction End ===" >> prediction_results.txt 2>&1
-
-    - name: Run get_data.py for DLT (大乐透)
-      run: |
-        python get_data.py --name dlt
-
-    - name: Run run_train_model.py for DLT (大乐透)
-      run: |
-        python run_train_model.py --name dlt --train_test_split 0.8
+        python run_predict.py --name ssq >> prediction_results.txt 2>&1 || true
 
     - name: Run run_predict.py for DLT (大乐透)
       id: predict_dlt
       run: |
-        echo "=== DLT (大乐透) Prediction Start ===" >> prediction_results.txt 2>&1
-        echo "Date: $(date)" >> prediction_results.txt 2>&1
-        if python run_predict.py --name dlt >> prediction_results.txt 2>&1; then
-          echo "DLT Prediction completed successfully" >> prediction_results.txt 2>&1
-        else
-          echo "DLT Prediction failed - check model files" >> prediction_results.txt 2>&1
-          echo "Using fallback prediction..." >> prediction_results.txt 2>&1
-          echo "红球预测: 03, 11, 18, 25, 32" >> prediction_results.txt 2>&1
-          echo "蓝球预测: 05, 12" >> prediction_results.txt 2>&1
-        fi
-        echo "=== DLT Prediction End ===" >> prediction_results.txt 2>&1
-
-    - name: Upload prediction results
-      uses: actions/upload-artifact@v4
-      with:
-        name: lottery-predictions
-        path: |
-          prediction_results.txt
-          data/ssq/data.csv
-          data/dlt/data.csv
+        python run_predict.py --name dlt >> prediction_results.txt 2>&1 || true
 
     - name: Post prediction summary to console
       run: |
@@ -90,10 +53,10 @@ jobs:
         echo ""
         echo "SSQ (双色球) Prediction Results:"
         echo "================================"
-        tail -10 prediction_results.txt | grep -E "(预测结果|Prediction results|红球|蓝球)" || echo "No SSQ results found"
+        tail -10 prediction_results.txt | grep -E "(预测期号|预测结果)" || echo "No SSQ results found"
         echo ""
         echo "DLT (大乐透) Prediction Results:"
         echo "==============================="
-        tail -5 prediction_results.txt | grep -E "(预测结果|Prediction results|红球|蓝球)" || echo "No DLT results found"
+        tail -5 prediction_results.txt | grep -E "(预测期号|预测结果)" || echo "No DLT results found"
         echo ""
-        echo "Full prediction details saved to prediction_results.txt"
+        echo "Prediction results have been updated to README.md"
