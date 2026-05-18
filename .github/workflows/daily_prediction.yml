@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests beautifulsoup4 pandas lxml loguru
+        pip install requests beautifulsoup4 pandas lxml loguru tensorflow==2.6.1 tensorflow-addons==0.10.0 keras==2.6.0 grpcio==1.46.0 protobuf==3.18.1
 
     - name: Create necessary directories
       run: |
