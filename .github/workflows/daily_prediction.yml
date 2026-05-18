@@ -46,7 +46,7 @@ jobs:
     - name: Update README with prediction results
       run: |
         echo "=== Lottery Prediction Summary ===" > README_update.md
-        echo "Date: $(date)" >> README_update.md
+        echo "Date: $(TZ='Asia/Shanghai' date)" >> README_update.md
         echo "" >> README_update.md
 
         # 检查是否有预测结果
