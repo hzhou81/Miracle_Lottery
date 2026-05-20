@@ -26,18 +26,9 @@ class LstmWithCRFModel(object):
         )
         # 构建特征抽取
         embedding = tf.keras.layers.Embedding(words_size, embedding_size)(self._inputs)
-        #first_lstm = tf.convert_to_tensor(
-        #    [tf.keras.layers.LSTM(hidden_size)(embedding[:, :, i, :]) for i in range(ball_num)]
-        #)
-        first_lstm = tf.convert_to_tensor([
-            tf.keras.layers.LSTM(
-            hidden_size,
-            activation='tanh',
-            recurrent_activation='sigmoid',
-            recurrent_dropout=0,  # 关键修改：禁用 dropout
-            unroll=False
-            )(embedding[:, :, i, :]) for i in range(ball_num)
-        ])
+        first_lstm = tf.convert_to_tensor(
+            [tf.keras.layers.LSTM(hidden_size)(embedding[:, :, i, :]) for i in range(ball_num)]
+        )
         first_lstm = tf.transpose(first_lstm, perm=[1, 0, 2])
         second_lstm = None
         for _ in range(layer_size):
@@ -94,15 +85,7 @@ class SignalLstmModel(object):
             shape=(n_class, ), batch_size=batch_size, dtype=tf.float32, name="tag_indices"
         )
         embedding = tf.keras.layers.Embedding(outputs_size, embedding_size)(self._inputs)
-        #lstm = tf.keras.layers.LSTM(hidden_size, return_sequences=True)(embedding)
-        lstm = tf.keras.layers.LSTM(
-            hidden_size,
-            return_sequences=True,
-            activation='tanh',
-            recurrent_activation='sigmoid',
-            recurrent_dropout=0,  # 移除原有的 recurrent_dropout=0.2
-            unroll=False
-        )(embedding)
+        lstm = tf.keras.layers.LSTM(hidden_size, return_sequences=True)(embedding)
         for _ in range(layer_size):
             lstm = tf.keras.layers.LSTM(hidden_size, return_sequences=True)(lstm)
         final_lstm = tf.keras.layers.LSTM(hidden_size, recurrent_dropout=0.2)(lstm)

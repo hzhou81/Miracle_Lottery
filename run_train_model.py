@@ -244,17 +244,20 @@ def train_with_eval_blue_ball_model(name, x_train, y_train, x_test, y_test):
         all_true_count = 0
         for j in range(test_data_len):
             if name == "ssq":
-                true = y_test[j:(j + 1), :]
+                true = y_test[j:(j + 1), :]  # one-hot 向量
                 pred = sess.run(blue_ball_model.pred_label
                 , feed_dict={"inputs:0": x_test[j:(j + 1), :]})
+                # 修正：获取真实类别索引，然后比较
+                true_label = np.argmax(true, axis=1)
+                count = np.sum(true_label == pred)
             else:
-                true = y_test[j:(j + 1), :]
+                true = y_test[j:(j + 1), :]  # 标签索引
                 pred = sess.run(blue_ball_model.pred_sequence
                 , feed_dict={
                     "inputs:0": x_test[j:(j + 1), :, :],
                     "sequence_length:0": np.array([sequence_len] * 1)
                 })
-            count = np.sum(true == pred + 1)
+                count = np.sum(true == pred + 1)
             all_true_count += count
             if count in eval_d:
                 eval_d[count] += 1
