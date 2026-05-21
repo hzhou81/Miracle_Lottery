@@ -34,14 +34,25 @@ jobs:
       run: |
         python get_data.py --name ssq
 
+    - name: Run get_data.py for DLT (大乐透)
+      run: |
+        python get_data.py --name dlt
+
     - name: Run run_train_model.py for SSQ (双色球)
       run: |
         python run_train_model.py --name ssq --train_test_split 0.8
 
-    - name: Run run_predict.py (自动根据星期决定彩票类型)
-      id: predict_lottery
+    - name: Run run_train_model.py for DLT (大乐透)
       run: |
-        python run_predict.py >> prediction_results.txt 2>&1 || true
+        python run_train_model.py --name dlt --train_test_split 0.8
+
+    - name: Run run_predict.py for SSQ (双色球)
+      run: |
+        python run_predict.py --name ssq >> prediction_results.txt 2>&1 || true
+
+    - name: Run run_predict.py for DLT (大乐透)
+      run: |
+        python run_predict.py --name dlt >> prediction_results.txt 2>&1 || true
 
     - name: Update README with prediction results
       run: |
@@ -65,8 +76,8 @@ jobs:
           echo "This may be because today is not a prediction day." >> README_update.md
         fi
 
-        # 将更新后的内容追加到README.md的顶部
-        head -n 10 README.md > README_temp.md
+        # 将更新后的内容追加到README.md的尾部
+        cat README.md > README_temp.md
         cat README_update.md >> README_temp.md
         cp README_temp.md README.md
         rm README_temp.md README_update.md
