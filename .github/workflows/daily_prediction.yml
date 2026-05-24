@@ -11,6 +11,8 @@ on:
 jobs:
   predict-lottery:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout repository
@@ -89,6 +91,7 @@ jobs:
         git config user.email "github-actions@github.com"
         git add README.md
         git diff --staged --quiet || git commit -m "Update README with lottery prediction results [$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')]"
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         git push
 
     - name: Upload prediction results as Artifacts
