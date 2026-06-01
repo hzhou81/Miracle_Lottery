@@ -40,8 +40,6 @@
 
 ## Getting Started
 
-## Getting Started
-
 ### 本地运行
 
 ```python
