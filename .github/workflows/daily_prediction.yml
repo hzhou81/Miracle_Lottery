@@ -48,11 +48,11 @@ jobs:
 
     - name: Run run_predict.py for SSQ (双色球)
       run: |
-        python run_predict.py --name ssq >> prediction_results.txt 2>&1 || true
+        NO_COLOR=1 python run_predict.py --name ssq > ssq_results.txt 2>&1 || true
 
     - name: Run run_predict.py for DLT (大乐透)
       run: |
-        python run_predict.py --name dlt >> prediction_results.txt 2>&1 || true
+        NO_COLOR=1 python run_predict.py --name dlt > dlt_results.txt 2>&1 || true
 
     - name: Update README with prediction results
       run: |
@@ -60,18 +60,24 @@ jobs:
         echo "Date: $(TZ='Asia/Shanghai' date)" >> README_update.md
         echo "" >> README_update.md
 
-        # 检查是否有预测结果
-        if grep -q "预测期号" prediction_results.txt; then
+        # 双色球预测结果
+        if grep -q "预测期号" ssq_results.txt; then
           echo "SSQ (双色球) Prediction Results:" >> README_update.md
           echo "================================" >> README_update.md
-          tail -10 prediction_results.txt | grep -E "(预测期号|预测结果)" >> README_update.md
+          grep -E "(预测期号|预测结果)" ssq_results.txt >> README_update.md
           echo "" >> README_update.md
+        fi
 
+        # 大乐透预测结果
+        if grep -q "预测期号" dlt_results.txt; then
           echo "DLT (大乐透) Prediction Results:" >> README_update.md
           echo "===============================" >> README_update.md
-          tail -5 prediction_results.txt | grep -E "(预测期号|预测结果)" >> README_update.md
+          grep -E "(预测期号|预测结果)" dlt_results.txt >> README_update.md
           echo "" >> README_update.md
-        else
+        fi
+
+        # 如果没有任何预测结果
+        if ! grep -q "预测期号" ssq_results.txt dlt_results.txt; then
           echo "No lottery predictions were generated today." >> README_update.md
           echo "This may be because today is not a prediction day." >> README_update.md
         fi
@@ -80,6 +86,6 @@ jobs:
         cat README.md > README_temp.md
         cat README_update.md >> README_temp.md
         cp README_temp.md README.md
-        rm README_temp.md README_update.md
+        rm README_temp.md README_update.md ssq_results.txt dlt_results.txt
 
         echo "README.md has been updated with today's prediction results!"
