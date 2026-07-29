@@ -50,11 +50,11 @@ jobs:
 
     - name: Run run_predict.py for SSQ (双色球)
       run: |
-        NO_COLOR=1 python run_predict.py --name ssq > ssq_results.txt 2>&1 || true
+        python run_predict.py --name ssq 2>&1 | sed 's/\x1b\[[0-9;]*m//g' > ssq_results.txt || true
 
     - name: Run run_predict.py for DLT (大乐透)
       run: |
-        NO_COLOR=1 python run_predict.py --name dlt > dlt_results.txt 2>&1 || true
+        python run_predict.py --name dlt 2>&1 | sed 's/\x1b\[[0-9;]*m//g' > dlt_results.txt || true
 
     - name: Update README with prediction results
       run: |
