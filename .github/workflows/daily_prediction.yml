@@ -11,6 +11,8 @@ on:
 jobs:
   predict-lottery:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout repository
@@ -89,3 +91,17 @@ jobs:
         rm README_temp.md README_update.md ssq_results.txt dlt_results.txt
 
         echo "README.md has been updated with today's prediction results!"
+
+        # 提交并推送 README.md 的更新到仓库
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git add README.md
+        git diff --staged --quiet || git commit -m "Update README with lottery prediction results [$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')]"
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        git push
+
+    - name: Upload prediction results as Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: lottery-predictions
+        path: prediction_results.txt
