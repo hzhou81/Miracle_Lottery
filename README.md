@@ -15,7 +15,7 @@
 
 ## 特性
 
-- **双彩种支持**: 双色球(SSQ)和大乐透(DLT)
+- **多彩种支持**: 双色球(SSQ)、大乐透(DLT)、七乐彩(QLC)
 - **概率输出**: 预测时输出每个号码的命中概率分布
 - **复式预测**: 自动生成多种复式投注方案
 - **模型评估**: 训练时自动评估模型在测试集上的命中准确率
@@ -47,6 +47,7 @@
 ```
 python get_data.py --name ssq   # 双色球
 python get_data.py --name dlt   # 大乐透
+python get_data.py --name qlc   # 七乐彩
 ```
 
 数据来源：http://datachart.500.com/ssq/history/newinc/history.php
@@ -56,6 +57,7 @@ python get_data.py --name dlt   # 大乐透
 ```
 python run_train_model.py --name ssq --train_test_split 0.8
 python run_train_model.py --name dlt --train_test_split 0.8
+python run_train_model.py --name qlc --train_test_split 0.8
 ```
 
 - 先训练红球模型（LSTM+CRF），再训练蓝球模型
@@ -67,6 +69,7 @@ python run_train_model.py --name dlt --train_test_split 0.8
 ```
 python run_predict.py --name ssq   # 双色球
 python run_predict.py --name dlt   # 大乐透
+python run_predict.py --name qlc   # 七乐彩
 ```
 
 预测输出包括：

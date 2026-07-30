@@ -23,58 +23,30 @@ tf.compat.v1.disable_eager_execution()
 
 def load_model(name):
     """ 加载模型 """
-    if name == "ssq":
-        red_graph = tf.compat.v1.Graph()
-        with red_graph.as_default():
-            red_saver = tf.compat.v1.train.import_meta_graph(
-                "{}red_ball_model.ckpt.meta".format(model_args[args.name]["path"]["red"])
-            )
-        red_sess = tf.compat.v1.Session(graph=red_graph)
-        red_saver.restore(red_sess, "{}red_ball_model.ckpt".format(model_args[args.name]["path"]["red"]))
-        logger.info("已加载红球模型！")
+    red_graph = tf.compat.v1.Graph()
+    with red_graph.as_default():
+        red_saver = tf.compat.v1.train.import_meta_graph(
+            "{}red_ball_model.ckpt.meta".format(model_args[args.name]["path"]["red"])
+        )
+    red_sess = tf.compat.v1.Session(graph=red_graph)
+    red_saver.restore(red_sess, "{}red_ball_model.ckpt".format(model_args[args.name]["path"]["red"]))
+    logger.info("已加载红球模型！")
 
-        blue_graph = tf.compat.v1.Graph()
-        with blue_graph.as_default():
-            blue_saver = tf.compat.v1.train.import_meta_graph(
-                "{}blue_ball_model.ckpt.meta".format(model_args[args.name]["path"]["blue"])
-            )
-        blue_sess = tf.compat.v1.Session(graph=blue_graph)
-        blue_saver.restore(blue_sess, "{}blue_ball_model.ckpt".format(model_args[args.name]["path"]["blue"]))
-        logger.info("已加载蓝球模型！")
+    blue_graph = tf.compat.v1.Graph()
+    with blue_graph.as_default():
+        blue_saver = tf.compat.v1.train.import_meta_graph(
+            "{}blue_ball_model.ckpt.meta".format(model_args[args.name]["path"]["blue"])
+        )
+    blue_sess = tf.compat.v1.Session(graph=blue_graph)
+    blue_saver.restore(blue_sess, "{}blue_ball_model.ckpt".format(model_args[args.name]["path"]["blue"]))
+    logger.info("已加载蓝球模型！")
 
-        # 加载关键节点名
-        with open("{}/{}/{}".format(model_path, args.name, pred_key_name)) as f:
-            pred_key_d = json.load(f)
+    with open("{}/{}/{}".format(model_path, args.name, pred_key_name)) as f:
+        pred_key_d = json.load(f)
 
-        current_number = get_current_number(args.name)
-        logger.info("【{}】最近一期:{}".format(name_path[args.name]["name"], current_number))
-        return red_graph, red_sess, blue_graph, blue_sess, pred_key_d, current_number
-    else:
-        red_graph = tf.compat.v1.Graph()
-        with red_graph.as_default():
-            red_saver = tf.compat.v1.train.import_meta_graph(
-                "{}red_ball_model.ckpt.meta".format(model_args[args.name]["path"]["red"])
-            )
-        red_sess = tf.compat.v1.Session(graph=red_graph)
-        red_saver.restore(red_sess, "{}red_ball_model.ckpt".format(model_args[args.name]["path"]["red"]))
-        logger.info("已加载红球模型！")
-
-        blue_graph = tf.compat.v1.Graph()
-        with blue_graph.as_default():
-            blue_saver = tf.compat.v1.train.import_meta_graph(
-                "{}blue_ball_model.ckpt.meta".format(model_args[args.name]["path"]["blue"])
-            )
-        blue_sess = tf.compat.v1.Session(graph=blue_graph)
-        blue_saver.restore(blue_sess, "{}blue_ball_model.ckpt".format(model_args[args.name]["path"]["blue"]))
-        logger.info("已加载蓝球模型！")
-
-        # 加载关键节点名
-        with open("{}/{}/{}".format(model_path,args.name , pred_key_name)) as f:
-            pred_key_d = json.load(f)
-
-        current_number = get_current_number(args.name)
-        logger.info("【{}】最近一期:{}".format(name_path[args.name]["name"], current_number))
-        return red_graph, red_sess, blue_graph, blue_sess, pred_key_d, current_number
+    current_number = get_current_number(args.name)
+    logger.info("【{}】最近一期:{}".format(name_path[args.name]["name"], current_number))
+    return red_graph, red_sess, blue_graph, blue_sess, pred_key_d, current_number
 
 
 def get_year():
@@ -106,22 +78,22 @@ def format_prediction_result(pred_result, name):
     lottery_name = name_path[name]["name"]
 
     if name == "ssq":
-        # 双色球：6个红球 + 1个蓝球
         red_balls = [pred_result[f"红球_{i}"] for i in range(1, 7)]
         blue_ball = pred_result["蓝球"]
-
         red_circled = "".join([number_to_circled(num) for num in red_balls])
         blue_circled = number_to_circled(blue_ball)
-
+        return f"{lottery_name}1注:{{{red_circled}：{blue_circled}}}，金额2元"
+    elif name == "qlc":
+        red_balls = [pred_result[f"红球_{i}"] for i in range(1, 8)]
+        blue_ball = pred_result["蓝球"]
+        red_circled = "".join([number_to_circled(num) for num in red_balls])
+        blue_circled = number_to_circled(blue_ball)
         return f"{lottery_name}1注:{{{red_circled}：{blue_circled}}}，金额2元"
     else:
-        # 大乐透：5个红球 + 2个蓝球
         red_balls = [pred_result[f"红球_{i}"] for i in range(1, 6)]
         blue_balls = [pred_result[f"蓝球_{i}"] for i in range(1, 3)]
-
         red_circled = "".join([number_to_circled(num) for num in red_balls])
         blue_circled = "".join([number_to_circled(num) for num in blue_balls])
-
         return f"{lottery_name}1注:{{{red_circled}：{blue_circled}}}，金额2元"
 
 
@@ -214,10 +186,9 @@ def get_red_ball_predict_result(red_graph, red_sess, pred_key_d, predict_feature
 def get_blue_ball_predict_result(blue_graph, blue_sess, pred_key_d, name, predict_features, sequence_len, windows_size):
     """ 获取蓝球预测结果
     """
-    if name == "ssq":
+    if name == "ssq" or name == "qlc":
         data = predict_features[[ball_name[1][0]]].values.astype(int) - 1
         with blue_graph.as_default():
-            # 修正：使用 pred_label 而不是 softmax，因为训练时保存的是 pred_label 的名称
             pred_label = tf.compat.v1.get_default_graph().get_tensor_by_name(pred_key_d[ball_name[1][0]])
             pred = blue_sess.run(pred_label, feed_dict={
                 "inputs:0": data.reshape(1, windows_size)
@@ -257,10 +228,9 @@ def get_red_ball_probabilities(red_graph, red_sess, predict_features, sequence_l
 def get_blue_ball_probabilities(blue_graph, blue_sess, name, predict_features, sequence_len, windows_size):
     """ 获取蓝球每个号码的命中概率
     """
-    if name == "ssq":
+    if name == "ssq" or name == "qlc":
         data = predict_features[[ball_name[1][0]]].values.astype(int) - 1
         with blue_graph.as_default():
-            # 获取softmax概率输出
             softmax_probs = tf.compat.v1.get_default_graph().get_tensor_by_name("dense/Softmax:0")
             probs = blue_sess.run(softmax_probs, feed_dict={
                 "inputs:0": data.reshape(1, windows_size)
@@ -270,13 +240,11 @@ def get_blue_ball_probabilities(blue_graph, blue_sess, name, predict_features, s
         name_list = [(ball_name[1], i + 1) for i in range(sequence_len)]
         data = predict_features[["{}_{}".format(name[0], i) for name, i in name_list]].values.astype(int) - 1
         with blue_graph.as_default():
-            # DLT蓝球使用CRF模型，获取logits
             logits = tf.compat.v1.get_default_graph().get_tensor_by_name("dense/BiasAdd:0")
             logits_result = blue_sess.run(logits, feed_dict={
                 "inputs:0": data.reshape(1, windows_size, sequence_len),
                 "sequence_length:0": np.array([sequence_len] * 1)
             })
-            # 计算softmax概率
             probs = tf.nn.softmax(logits_result, axis=-1)
             with tf.compat.v1.Session() as temp_sess:
                 probs_result = temp_sess.run(probs)
@@ -287,7 +255,7 @@ def get_final_result(red_graph, red_sess, blue_graph, blue_sess, pred_key_d, nam
     """" 最终预测函数
     """
     m_args = model_args[name]["model_args"]
-    if name == "ssq":
+    if name == "ssq" or name == "qlc":
         red_pred, red_name_list = get_red_ball_predict_result(
             red_graph, red_sess, pred_key_d,
             predict_features, m_args["sequence_len"], windows_size
@@ -297,7 +265,6 @@ def get_final_result(red_graph, red_sess, blue_graph, blue_sess, pred_key_d, nam
             name, predict_features, 0, windows_size
         )
         ball_name_list = ["{}_{}".format(name[mode], i) for name, i in red_name_list] + [ball_name[1][mode]]
-        # 修正：blue_pred 是形状 (1,) 的数组，需要取第一个元素
         pred_result_list = red_pred[0].tolist() + [int(blue_pred[0])]
         return {
             b_name: int(res) + 1 for b_name, res in zip(ball_name_list, pred_result_list)
@@ -397,34 +364,30 @@ def run(name):
         
         # 获取并输出概率分布
         m_args = model_args[name]["model_args"]
-        if name == "ssq":
-            # 红球概率
+        if name == "ssq" or name == "qlc":
+            red_sequence_len = m_args["sequence_len"]
             red_probs, red_name_list = get_red_ball_probabilities(
                 red_graph, red_sess, predict_features_,
-                m_args["sequence_len"], windows_size
+                red_sequence_len, windows_size
             )
-            # 蓝球概率
             blue_probs = get_blue_ball_probabilities(
                 blue_graph, blue_sess, name, predict_features_,
                 0, windows_size
             )
-
-            logger.info("=== 红球命中概率 ===")
-            logger.info(format_probabilities(red_probs, "红球", m_args["red_n_class"], m_args["sequence_len"]))
-            logger.info("=== 蓝球命中概率 ===")
-            logger.info(format_probabilities(blue_probs, "蓝球", m_args["blue_n_class"], 1))
+            logger.info("=== {}命中概率 ===".format(name_path[name]["name"]))
+            logger.info("=== 基本号命中概率 ===")
+            logger.info(format_probabilities(red_probs, "基本号", m_args["red_n_class"], red_sequence_len))
+            logger.info("=== 特别号命中概率 ===")
+            logger.info(format_probabilities(blue_probs, "特别号", m_args["blue_n_class"], 1))
         else:
-            # DLT红球概率
             red_probs, red_name_list = get_red_ball_probabilities(
                 red_graph, red_sess, predict_features_,
                 m_args["red_sequence_len"], windows_size
             )
-            # DLT蓝球概率
             blue_probs, blue_name_list = get_blue_ball_probabilities(
                 blue_graph, blue_sess, name, predict_features_,
                 m_args["blue_sequence_len"], windows_size
             )
-
             logger.info("=== 红球命中概率 ===")
             logger.info(format_probabilities(red_probs, "红球", m_args["red_n_class"], m_args["red_sequence_len"]))
             logger.info("=== 蓝球命中概率 ===")
@@ -440,49 +403,48 @@ def run(name):
 
         # 复式预测
         if name == "ssq":
-            # 双色球复式预测
             logger.info("=== 复式预测 ===")
-
-            # 获取红球和蓝球的前N个高概率号码
             red_top_7 = get_top_numbers_from_probs(red_probs, m_args["red_n_class"], 7, m_args["sequence_len"])
             blue_top_16 = get_top_numbers_from_probs(blue_probs, m_args["blue_n_class"], 16, 1)
 
-            # 1. 篮球复式2注：6个红球 + 2个蓝球，金额4元
-            # 从预测结果中取6个红球，从概率中取前2个蓝球
             red_balls_6 = [pred_result[f"红球_{i}"] for i in range(1, 7)]
             blue_balls_2 = blue_top_16[:2]
             complex_1 = format_complex_prediction(red_balls_6, blue_balls_2, name_path[name]["name"], 2, 4)
             logger.info("篮球复式2注：{}".format(complex_1))
 
-            # 2. 全蓝复式16注：6个红球 + 16个蓝球，金额32元
-            # 从预测结果中取6个红球，从概率中取前16个蓝球
             red_balls_6_blue = [pred_result[f"红球_{i}"] for i in range(1, 7)]
             blue_balls_16 = blue_top_16[:16]
             complex_2 = format_complex_prediction(red_balls_6_blue, blue_balls_16, name_path[name]["name"], 16, 32)
             logger.info("全蓝复式16注：{}".format(complex_2))
 
         elif name == "dlt":
-            # 大乐透复式预测
             logger.info("=== 复式预测 ===")
-
-            # 获取红球和蓝球的前N个高概率号码
-            # 大乐透：35个红球，12个蓝球
             red_top_7 = get_top_numbers_from_probs(red_probs, m_args["red_n_class"], 7, m_args["red_sequence_len"])
             blue_top_4 = get_top_numbers_from_probs(blue_probs, m_args["blue_n_class"], 4, m_args["blue_sequence_len"])
 
-            # 1. 后区复式(5+3)3注：5个红球 + 3个蓝球，金额6元
-            # 从预测结果中取5个红球，从概率中取前3个蓝球
             red_balls_5 = [pred_result[f"红球_{i}"] for i in range(1, 6)]
             blue_balls_3 = blue_top_4[:3]
             complex_1 = format_complex_prediction(red_balls_5, blue_balls_3, name_path[name]["name"], 3, 6)
             logger.info("后区复式(5+3)3注：{}".format(complex_1))
 
-            # 2. 后区复式(5+4)6注：5个红球 + 4个蓝球，金额12元
-            # 从预测结果中取5个红球，从概率中取前4个蓝球
             red_balls_5_2 = [pred_result[f"红球_{i}"] for i in range(1, 6)]
             blue_balls_4 = blue_top_4[:4]
             complex_2 = format_complex_prediction(red_balls_5_2, blue_balls_4, name_path[name]["name"], 6, 12)
             logger.info("后区复式(5+4)6注：{}".format(complex_2))
+
+        elif name == "qlc":
+            logger.info("=== 复式预测 ===")
+            red_top_8 = get_top_numbers_from_probs(red_probs, m_args["red_n_class"], 8, m_args["sequence_len"])
+            blue_top_2 = get_top_numbers_from_probs(blue_probs, m_args["blue_n_class"], 2, 1)
+
+            red_balls_8 = red_top_8[:8]
+            blue_balls_1 = blue_top_2[:1]
+            complex_1 = format_complex_prediction(red_balls_8, blue_balls_1, name_path[name]["name"], 8, 16)
+            logger.info("基本号8码复式：{}".format(complex_1))
+
+            blue_balls_2 = blue_top_2[:2]
+            complex_2 = format_complex_prediction(red_balls_8, blue_balls_2, name_path[name]["name"], 16, 32)
+            logger.info("全复式(8+2)：{}".format(complex_2))
 
     except Exception as e:
         logger.info("模型加载失败，检查模型是否训练，错误：{}".format(e))

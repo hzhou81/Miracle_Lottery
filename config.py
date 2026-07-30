@@ -19,6 +19,10 @@ name_path = {
     "dlt": {
         "name": "大乐透",
         "path": "data/dlt/"
+    },
+    "qlc": {
+        "name": "七乐彩",
+        "path": "data/qlc/"
     }
 }
 
@@ -86,6 +90,37 @@ model_args = {
         "path": {
             "red": model_path + "/dlt/red_ball_model/",
             "blue": model_path + "/dlt/blue_ball_model/"
+        }
+    },
+    "qlc": {
+        "model_args": {
+            "windows_size": 5,
+            "batch_size": 1,
+            "sequence_len": 7,
+            "red_n_class": 30,
+            "red_epochs": 5,
+            "red_embedding_size": 32,
+            "red_hidden_size": 64,
+            "red_layer_size": 3,
+            "blue_n_class": 30,
+            "blue_epochs": 5,
+            "blue_embedding_size": 32,
+            "blue_hidden_size": 64,
+            "blue_layer_size": 3
+        },
+        "train_args": {
+            "red_learning_rate": 0.0005,
+            "red_beta1": 0.9,
+            "red_beta2": 0.999,
+            "red_epsilon": 1e-08,
+            "blue_learning_rate": 0.0005,
+            "blue_beta1": 0.9,
+            "blue_beta2": 0.999,
+            "blue_epsilon": 1e-08
+        },
+        "path": {
+            "red": model_path + "/qlc/red_ball_model/",
+            "blue": model_path + "/qlc/blue_ball_model/"
         }
     }
 }
