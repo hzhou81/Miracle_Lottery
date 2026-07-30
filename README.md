@@ -1,6 +1,6 @@
-# 双色球+大乐透彩票AI预测
+# 双色球+大乐透+七乐彩彩票AI预测
 
-基于 LSTM+CRF 序列模型的彩票预测工具，支持双色球(SSQ)和大乐透(DLT)的数据获取、模型训练和结果预测。
+基于 LSTM+CRF 序列模型的彩票预测工具，支持双色球(SSQ)、大乐透(DLT)和七乐彩(QLC)的数据获取、模型训练和结果预测。
 
 ---
 
@@ -50,7 +50,10 @@ python get_data.py --name dlt   # 大乐透
 python get_data.py --name qlc   # 七乐彩
 ```
 
-数据来源：http://datachart.500.com/ssq/history/newinc/history.php
+数据来源：
+- 双色球：http://datachart.500.com/ssq/history/newinc/history.php
+- 大乐透：http://datachart.500.com/dlt/history/newinc/history.php
+- 七乐彩：http://datachart.500.com/qlc/history/newinc/history.php
 
 ### 2. 训练模型
 
@@ -78,6 +81,7 @@ python run_predict.py --name qlc   # 七乐彩
 - 🎯 **复式方案**:
   - 双色球：篮球复式2注、全蓝复式16注
   - 大乐透：后区复式(5+3)3注、(5+4)6注
+  - 七乐彩：基本号8码复式、全复式(8+2)
 
 ---
 
@@ -87,6 +91,7 @@ python run_predict.py --name qlc   # 七乐彩
 
 - **双色球** (SSQ): 每周**二、四、日** 23:59 UTC 触发
 - **大乐透** (DLT): 每周**一、三、六** 23:59 UTC 触发
+- **七乐彩** (QLC): 每周**一、三、五** 23:59 UTC 触发
 - **手动触发**: 进入 Actions → "Daily Lottery Prediction" → Run workflow
 
 预测结果会：
@@ -107,7 +112,8 @@ Miracle_Lottery/
 ├── requirements.txt       # Python 依赖
 ├── data/
 │   ├── ssq/               # 双色球训练数据
-│   └── dlt/               # 大乐透训练数据
+│   ├── dlt/               # 大乐透训练数据
+│   └── qlc/               # 七乐彩训练数据
 ├── model/                 # 训练好的模型文件
 └── .github/workflows/     # GitHub Actions 工作流
 ```
@@ -118,13 +124,13 @@ Miracle_Lottery/
 
 所有模型参数集中在 `config.py`：
 
-| 参数 | 双色球 | 大乐透 | 说明 |
-|------|--------|--------|------|
-| 红球范围 | 1-33 | 1-35 | |
-| 蓝球范围 | 1-16 | 1-12 | |
-| 红球序列长度 | 6 | 5 | |
-| 蓝球序列长度 | 1 | 2 | |
-| 窗口大小 | 5 | 5 | 用最近 N 期预测下一期 |
+| 参数 | 双色球 | 大乐透 | 七乐彩 | 说明 |
+|------|--------|--------|--------|------|
+| 红球范围 | 1-33 | 1-35 | 1-30 | |
+| 蓝球范围 | 1-16 | 1-12 | 1-30 | |
+| 红球序列长度 | 6 | 5 | 7 | |
+| 蓝球序列长度 | 1 | 2 | 1 | |
+| 窗口大小 | 5 | 5 | 5 | 用最近 N 期预测下一期 |
 
 ---
 
