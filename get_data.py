@@ -37,13 +37,23 @@ def get_current_number(name):
     r = requests.get("{}newinc/history.php".format(url), verify=False, proxies=no_proxy, headers=headers)
     r.encoding = "gb2312"
     soup = BeautifulSoup(r.text, "lxml")
-    tbody = soup.find("tbody", attrs={"id": "tdata"})
-    if tbody is None:
-        logger.error("无法获取数据，网站结构可能已变化。返回内容: {}".format(r.text[:500]))
-        raise Exception("获取数据失败: tbody#tdata 未找到")
-    trs = tbody.find_all("tr")
-    current_num = trs[0].find_all("td")[0].get_text().strip()
-    return current_num
+    if name == "qlc":
+        table = soup.find("table", attrs={"id": "tablelist"})
+        if table is None:
+            raise Exception("获取数据失败: table#tablelist 未找到")
+        trs = table.find_all("tr", class_="t_tr1")
+        if not trs:
+            raise Exception("获取数据失败: 无数据行")
+        current_num = trs[0].find_all("td")[0].get_text().strip()
+        return current_num
+    else:
+        tbody = soup.find("tbody", attrs={"id": "tdata"})
+        if tbody is None:
+            logger.error("无法获取数据，网站结构可能已变化。返回内容: {}".format(r.text[:500]))
+            raise Exception("获取数据失败: tbody#tdata 未找到")
+        trs = tbody.find_all("tr")
+        current_num = trs[0].find_all("td")[0].get_text().strip()
+        return current_num
 
 
 def spider(name, start, end, mode):
@@ -59,11 +69,18 @@ def spider(name, start, end, mode):
     r = requests.get(url=full_url, verify=False, proxies=no_proxy, headers=headers)
     r.encoding = "gb2312"
     soup = BeautifulSoup(r.text, "lxml")
-    tbody = soup.find("tbody", attrs={"id": "tdata"})
-    if tbody is None:
-        logger.error("无法获取数据，网站结构可能已变化")
-        return pd.DataFrame()
-    trs = tbody.find_all("tr")
+    if name == "qlc":
+        table = soup.find("table", attrs={"id": "tablelist"})
+        if table is None:
+            logger.error("无法获取数据，网站结构可能已变化")
+            return pd.DataFrame()
+        trs = table.find_all("tr", class_="t_tr1")
+    else:
+        tbody = soup.find("tbody", attrs={"id": "tdata"})
+        if tbody is None:
+            logger.error("无法获取数据，网站结构可能已变化")
+            return pd.DataFrame()
+        trs = tbody.find_all("tr")
     data = []
     for tr in trs:
         item = dict()
@@ -82,9 +99,10 @@ def spider(name, start, end, mode):
             data.append(item)
         elif name == "qlc":
             item[u"期数"] = tr.find_all("td")[0].get_text().strip()
+            nums = tr.find_all("td")[1].get_text(" ", strip=True).split()
             for i in range(7):
-                item[u"红球_{}".format(i+1)] = tr.find_all("td")[i+1].get_text().strip()
-            item[u"蓝球"] = tr.find_all("td")[8].get_text().strip()
+                item[u"红球_{}".format(i+1)] = nums[i]
+            item[u"蓝球"] = nums[7]
             data.append(item)
         else:
             logger.warning("抱歉，没有找到数据源！")
