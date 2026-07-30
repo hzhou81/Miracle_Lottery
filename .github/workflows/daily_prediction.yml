@@ -6,6 +6,8 @@ on:
     - cron: '59 23 * * 2,4,0'
     # 每周一、三、六 23:59 UTC (北京时间周二、四、五 07:59) - 大乐透
     - cron: '59 23 * * 1,3,6'
+    # 每周一、三、五 23:59 UTC (北京时间周二、四、六 07:59) - 七乐彩
+    - cron: '59 23 * * 1,3,5'
   workflow_dispatch:  # 允许手动触发
 
 jobs:
@@ -30,7 +32,7 @@ jobs:
 
     - name: Create necessary directories
       run: |
-        mkdir -p data/ssq data/dlt model/ssq/red_ball_model model/ssq/blue_ball_model model/dlt/red_ball_model model/dlt/blue_ball_model
+        mkdir -p data/ssq data/dlt data/qlc model/ssq/red_ball_model model/ssq/blue_ball_model model/dlt/red_ball_model model/dlt/blue_ball_model model/qlc/red_ball_model model/qlc/blue_ball_model
 
     - name: Run get_data.py for SSQ (双色球)
       run: |
@@ -40,6 +42,10 @@ jobs:
       run: |
         python get_data.py --name dlt
 
+    - name: Run get_data.py for QLC (七乐彩)
+      run: |
+        python get_data.py --name qlc
+
     - name: Run run_train_model.py for SSQ (双色球)
       run: |
         python run_train_model.py --name ssq --train_test_split 0.8
@@ -48,6 +54,10 @@ jobs:
       run: |
         python run_train_model.py --name dlt --train_test_split 0.8
 
+    - name: Run run_train_model.py for QLC (七乐彩)
+      run: |
+        python run_train_model.py --name qlc --train_test_split 0.8
+
     - name: Run run_predict.py for SSQ (双色球)
       run: |
         python run_predict.py --name ssq 2>&1 | sed 's/\x1b\[[0-9;]*m//g' > ssq_results.txt || true
@@ -55,6 +65,10 @@ jobs:
     - name: Run run_predict.py for DLT (大乐透)
       run: |
         python run_predict.py --name dlt 2>&1 | sed 's/\x1b\[[0-9;]*m//g' > dlt_results.txt || true
+
+    - name: Run run_predict.py for QLC (七乐彩)
+      run: |
+        python run_predict.py --name qlc 2>&1 | sed 's/\x1b\[[0-9;]*m//g' > qlc_results.txt || true
 
     - name: Update README with prediction results
       run: |
@@ -78,8 +92,16 @@ jobs:
           echo "" >> README_update.md
         fi
 
+        # 七乐彩预测结果
+        if grep -q "预测期号" qlc_results.txt; then
+          echo "QLC (七乐彩) Prediction Results:" >> README_update.md
+          echo "===============================" >> README_update.md
+          grep -E "(预测期号|预测结果)" qlc_results.txt >> README_update.md
+          echo "" >> README_update.md
+        fi
+
         # 如果没有任何预测结果
-        if ! grep -q "预测期号" ssq_results.txt dlt_results.txt; then
+        if ! grep -q "预测期号" ssq_results.txt dlt_results.txt qlc_results.txt; then
           echo "No lottery predictions were generated today." >> README_update.md
           echo "This may be because today is not a prediction day." >> README_update.md
         fi
@@ -88,7 +110,7 @@ jobs:
         cat README.md > README_temp.md
         cat README_update.md >> README_temp.md
         cp README_temp.md README.md
-        rm README_temp.md README_update.md ssq_results.txt dlt_results.txt
+        rm README_temp.md README_update.md ssq_results.txt dlt_results.txt qlc_results.txt
 
         echo "README.md has been updated with today's prediction results!"
 
