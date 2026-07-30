@@ -397,7 +397,25 @@ def run(name):
         pred_result = get_final_result(
             red_graph, red_sess, blue_graph, blue_sess, pred_key_d, name, predict_features_, windows_size
         )
-        # 格式化为中文数字格式
+
+        # 七乐彩：确保特别号不与基本号重复
+        if name == "qlc":
+            red_numbers = [pred_result[f"红球_{i}"] for i in range(1, 8)]
+            special = pred_result["蓝球"]
+            if special in red_numbers:
+                special_probs = []
+                for i in range(m_args["blue_n_class"]):
+                    prob = blue_probs[0][i] if len(blue_probs.shape) > 1 else blue_probs[i]
+                    if hasattr(prob, 'item'):
+                        prob = prob.item()
+                    special_probs.append((i + 1, prob))
+                special_probs.sort(key=lambda x: x[1], reverse=True)
+                for num, _ in special_probs:
+                    if num not in red_numbers:
+                        pred_result["蓝球"] = num
+                        logger.info("特别号与基本号重复，已修正为: {}".format(num))
+                        break
+
         formatted_result = format_prediction_result(pred_result, name)
         logger.info("预测结果：{}".format(formatted_result))
 
@@ -435,15 +453,14 @@ def run(name):
         elif name == "qlc":
             logger.info("=== 复式预测 ===")
             red_top_8 = get_top_numbers_from_probs(red_probs, m_args["red_n_class"], 8, m_args["sequence_len"])
-            blue_top_2 = get_top_numbers_from_probs(blue_probs, m_args["blue_n_class"], 2, 1)
+            blue_top_n = get_top_numbers_from_probs(blue_probs, m_args["blue_n_class"], m_args["blue_n_class"], 1)
 
             red_balls_8 = red_top_8[:8]
-            blue_balls_1 = blue_top_2[:1]
-            complex_1 = format_complex_prediction(red_balls_8, blue_balls_1, name_path[name]["name"], 8, 16)
+            blue_filtered = [n for n in blue_top_n if n not in red_balls_8]
+            complex_1 = format_complex_prediction(red_balls_8, blue_filtered[:1], name_path[name]["name"], 8, 16)
             logger.info("基本号8码复式：{}".format(complex_1))
 
-            blue_balls_2 = blue_top_2[:2]
-            complex_2 = format_complex_prediction(red_balls_8, blue_balls_2, name_path[name]["name"], 16, 32)
+            complex_2 = format_complex_prediction(red_balls_8, blue_filtered[:2], name_path[name]["name"], 16, 32)
             logger.info("全复式(8+2)：{}".format(complex_2))
 
     except Exception as e:
